@@ -194,7 +194,6 @@ class Summation(TensorOp):
         return array_api.array(array_api.sum(a, self.axes))
 
     def gradient(self, out_grad, node):
-        ### BEGIN YOUR SOLUTION
         input_shape = node.inputs[0].shape
         output_shape = out_grad.shape
         shape = list(input_shape)
@@ -221,7 +220,6 @@ class MatMul(TensorOp):
         return a @ b
 
     def gradient(self, out_grad, node):
-        ### BEGIN YOUR SOLUTION
         # (A, a, b), (B, b, c)
         lhs, rhs = node.inputs
         # out_grad: (C, a, c)
@@ -240,7 +238,6 @@ class MatMul(TensorOp):
             rhs_grad = summation(rhs_grad, axes=tuple(range(n1 - n3)))
 
         return lhs_grad, rhs_grad
-        ### END YOUR SOLUTION
 
 
 def matmul(a, b):
@@ -285,7 +282,6 @@ def exp(a):
     return Exp()(a)
 
 
-# TODO
 class ReLU(TensorOp):
     def compute(self, a):
         return array_api.maximum(array_api.zeros((a.shape)), a)
