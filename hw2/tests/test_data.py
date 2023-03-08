@@ -204,6 +204,7 @@ def test_mnist_dataset():
                                                 transforms=tforms)
     sample_norms = np.array([np.linalg.norm(mnist_train_dataset[idx][0]) for idx in [1,42,1000,2000,3000,4000,5000,5005]])
     compare_against = np.array([5.369537, 5.5454974, 8.966858, 7.547235, 8.785921, 7.848442, 7.1654058, 9.361828])
+    print(sample_norms)
     sample_labels = np.array([mnist_train_dataset[idx][1] for idx in [1,42,1000,2000,3000,4000,5000,5005]])
     compare_labels = np.array([0,7,0,5,9,7,7,8])
 

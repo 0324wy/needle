@@ -135,9 +135,8 @@ class PowerScalar(TensorOp):
         return array_api.power(a, self.scalar)
 
     def gradient(self, out_grad, node):
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        a = node.inputs[0]
+        return out_grad * self.scalar * array_api.power(a, self.scalar - 1)
 
 
 def power_scalar(a, scalar):
@@ -360,14 +359,32 @@ class LogSumExp(TensorOp):
         self.axes = axes
 
     def compute(self, Z):
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        max_z = array_api.max(Z, axis=self.axes, keepdims=True)
+        max_z_n = array_api.max(Z, axis=self.axes, keepdims=False)
+        out = array_api.log(array_api.sum(array_api.exp(Z - max_z), axis=self.axes)) + max_z_n
+        return out
 
     def gradient(self, out_grad, node):
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        a = node.inputs[0].cached_data
+
+        max_val = array_api.max(a, axis=self.axes, keepdims=True)
+        exp_val = array_api.exp(a - max_val)
+        sum_val = array_api.sum(exp_val, axis=self.axes)
+
+        log_grad = out_grad.cached_data / sum_val
+        input_shape = a.shape
+        broadcast_shape = list(input_shape)
+        if self.axes is not None:
+            if isinstance(self.axes, int):
+                broadcast_shape[self.axes] = 1
+            else:
+                for i in self.axes:
+                    broadcast_shape[i] = 1
+        else:
+            broadcast_shape = [1 for _ in range(len(broadcast_shape))]
+        reduce_sum_grad = array_api.reshape(log_grad, tuple(broadcast_shape))
+        exp_grad = exp_val * reduce_sum_grad
+        return Tensor(exp_grad)
 
 
 def logsumexp(a, axes=None):

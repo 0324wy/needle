@@ -42,12 +42,12 @@ class CPUDevice(Device):
         return numpy.ones(shape, dtype=dtype)
 
     def randn(self, *shape):
-        # note: numpy doesn't support types within standard random routines, and 
+        # note: numpy doesn't support types within standard random routines, and
         # .astype("float32") does work if we're generating a singleton
-        return numpy.random.randn(*shape) 
+        return numpy.random.randn(*shape)
 
     def rand(self, *shape):
-        # note: numpy doesn't support types within standard random routines, and 
+        # note: numpy doesn't support types within standard random routines, and
         # .astype("float32") does work if we're generating a singleton
         return numpy.random.rand(*shape)
 
@@ -88,7 +88,7 @@ class Op:
         raise NotImplementedError()
 
     def gradient(
-        self, out_grad: "Value", node: "Value"
+            self, out_grad: "Value", node: "Value"
     ) -> Union["Value", Tuple["Value"]]:
         """Compute partial adjoint for each input value for a given output adjoint.
 
@@ -164,13 +164,13 @@ class Value:
         TENSOR_COUNTER -= 1
 
     def _init(
-        self,
-        op: Optional[Op],
-        inputs: List["Tensor"],
-        *,
-        num_outputs: int = 1,
-        cached_data: List[object] = None,
-        requires_grad: Optional[bool] = None
+            self,
+            op: Optional[Op],
+            inputs: List["Tensor"],
+            *,
+            num_outputs: int = 1,
+            cached_data: List[object] = None,
+            requires_grad: Optional[bool] = None
     ):
         global TENSOR_COUNTER
         TENSOR_COUNTER += 1
@@ -242,13 +242,13 @@ class Tensor(Value):
     grad: "Tensor"
 
     def __init__(
-        self,
-        array,
-        *,
-        device: Optional[Device] = None,
-        dtype=None,
-        requires_grad=True,
-        **kwargs
+            self,
+            array,
+            *,
+            device: Optional[Device] = None,
+            dtype=None,
+            requires_grad=True,
+            **kwargs
     ):
         if isinstance(array, Tensor):
             if device is None:
@@ -426,7 +426,7 @@ def compute_gradient_of_variables(output_tensor, out_grad):
     for node in reverse_topo_order:
         # print('node.shape', node.shape)
         # 计算当前节点的adjoint
-        # print(node)
+        # print('node: ', node)
         partial_adjoint_list = node_to_output_grads_list[node]
         # print(partial_adjoint_list)
         adjoint = 0
@@ -455,7 +455,6 @@ def compute_gradient_of_variables(output_tensor, out_grad):
         else:
             node_to_output_grads_list[node.inputs[0]].append(out_grad)
 
-
 def find_topo_sort(node_list: List[Value]) -> List[Value]:
     """Given a list of nodes, return a topological sort list of nodes ending in them.
 
@@ -464,27 +463,21 @@ def find_topo_sort(node_list: List[Value]) -> List[Value]:
     after all its predecessors are traversed due to post-order DFS, we get a topological
     sort.
     """
-    visited = {}
     topo_order = []
+    visited = set()
     topo_sort_dfs(node_list[0], visited, topo_order)
     return topo_order
 
 
 def topo_sort_dfs(node, visited, topo_order):
-    if visited.get(node) is True:
-        return
-    visited[node] = True
-    if len(node.inputs) == 0:
-        topo_order.append(node)
-        return
-    node1 = node.inputs[0]
-    topo_sort_dfs(node1, visited, topo_order)
+    """Post-order DFS"""
+    ### BEGIN YOUR SOLUTION
+    for n in node.inputs:
+        topo_sort_dfs(n, visited, topo_order)
 
-    if len(node.inputs) == 2:
-        node2 = node.inputs[1]
-        topo_sort_dfs(node2, visited, topo_order)
-    topo_order.append(node)
-    return
+    if node not in visited:
+        topo_order.append(node)
+        visited.add(node)
 
 
 ##############################

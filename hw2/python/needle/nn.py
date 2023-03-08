@@ -86,30 +86,29 @@ class Linear(Module):
         super().__init__()
         self.in_features = in_features
         self.out_features = out_features
-
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        s_weight = init.kaiming_uniform(in_features, out_features)
+        s_bias = None
+        if bias is True:
+            s_bias = ops.reshape(init.kaiming_uniform(out_features, None), (1, out_features))
+        self.weight = Parameter(s_weight)
+        self.bias = Parameter(s_bias)
 
     def forward(self, X: Tensor) -> Tensor:
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        result = ops.matmul(X, self.weight)
+        if self.bias is not None:
+            return result + ops.broadcast_to(self.bias, result.shape)
+        return result
 
 
 
 class Flatten(Module):
     def forward(self, X):
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        return ops.reshape(X, (X.shape[0], -1))
 
 
 class ReLU(Module):
     def forward(self, x: Tensor) -> Tensor:
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        return ops.relu(x)
 
 
 class Sequential(Module):
@@ -118,16 +117,18 @@ class Sequential(Module):
         self.modules = modules
 
     def forward(self, x: Tensor) -> Tensor:
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
-
+        for module in self.modules:
+            x = module(x)
+        return x
 
 class SoftmaxLoss(Module):
     def forward(self, logits: Tensor, y: Tensor):
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        z_exp = ops.exp(logits)
+        z_exp_sum = ops.summation(z_exp, axes=1)
+        z_log = ops.log(z_exp_sum)
+        y_one_hot = Tensor(init.one_hot(logits.shape[1], y))
+        z_sum = ops.summation(logits * y_one_hot, axes=1)
+        return ops.summation(z_log - z_sum) / y_one_hot.shape[0]
 
 
 
@@ -137,41 +138,79 @@ class BatchNorm1d(Module):
         self.dim = dim
         self.eps = eps
         self.momentum = momentum
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
-
+        self.weight = Parameter(init.ones(self.dim))
+        self.bias = Parameter(init.zeros(self.dim))
+        self.running_mean = init.zeros(self.dim)
+        self.running_var = init.ones(self.dim)
 
     def forward(self, x: Tensor) -> Tensor:
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        batch_size = x.shape[0]
+        features = x.shape[1]
 
+        sums = ops.summation(x, axes=0)
+        mean = ops.divide_scalar(sums, batch_size)
+        tmp = ops.reshape(mean, (1, -1))
+        broadcast_mean = ops.broadcast_to(tmp, x.shape)
+
+        sub = x - broadcast_mean
+        sub2 = ops.power_scalar(sub, 2)
+        var = ops.summation(ops.divide_scalar(sub2, batch_size), axes=0)
+        broadcast_var = ops.broadcast_to(ops.reshape(var, (1, -1)), x.shape)
+        nominator = ops.power_scalar(broadcast_var + self.eps, 0.5)
+
+        broadcast_weight = ops.broadcast_to(ops.reshape(self.weight, (1, -1)), x.shape)
+        broadcast_bias = ops.broadcast_to(ops.reshape(self.bias, (1, -1)), x.shape)
+        out = broadcast_weight * (x - broadcast_mean) / nominator + broadcast_bias
+
+        if self.training is True:
+            self.running_mean = (1 - self.momentum) * self.running_mean + self.momentum * mean
+            self.running_var = (1 - self.momentum) * self.running_var + self.momentum * var
+        else:
+            broadcast_mean = ops.broadcast_to(ops.reshape(self.running_mean, (1, -1)), x.shape)
+            broadcast_var = ops.broadcast_to(ops.reshape(self.running_var, (1, -1)), x.shape)
+            nominator = ops.power_scalar(broadcast_var + self.eps, 0.5)
+            out = broadcast_weight * (x - broadcast_mean) / nominator + broadcast_bias
+        return out
 
 class LayerNorm1d(Module):
     def __init__(self, dim, eps=1e-5, device=None, dtype="float32"):
         super().__init__()
         self.dim = dim
         self.eps = eps
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        self.weight = Parameter(init.ones(self.dim))
+        self.bias = Parameter(init.zeros(self.dim))
 
     def forward(self, x: Tensor) -> Tensor:
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        batch_size = x.shape[0]
+        features = x.shape[1]
+
+        sums = ops.summation(x,axes=1)
+        mean = ops.divide_scalar(sums, features)
+        tmp = ops.reshape(mean, (-1, 1))
+        broadcast_mean = ops.broadcast_to(tmp, x.shape)
+
+        sub = x - broadcast_mean
+        sub2 = ops.power_scalar(sub, 2)
+        var = ops.summation(ops.divide_scalar(sub2, features), axes=1)
+        broadcast_var = ops.broadcast_to(ops.reshape(var, (-1, 1)), x.shape)
+
+        nominator = ops.power_scalar(broadcast_var + self.eps, 0.5)
+
+        broadcast_weight = ops.broadcast_to(ops.reshape(self.weight, (1, -1)), x.shape)
+        broadcast_bias = ops.broadcast_to(ops.reshape(self.bias, (1, -1)), x.shape)
+        out = broadcast_weight * (x - broadcast_mean) / nominator + broadcast_bias
+        return out
 
 
 class Dropout(Module):
-    def __init__(self, p = 0.5):
+    def __init__(self, p=0.5):
         super().__init__()
         self.p = p
 
     def forward(self, x: Tensor) -> Tensor:
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        if self.training is True:
+            mask = init.randb(*x.shape, p = 1 - self.p) / (1 - self.p)
+            return x * mask
 
 
 class Residual(Module):
@@ -180,9 +219,7 @@ class Residual(Module):
         self.fn = fn
 
     def forward(self, x: Tensor) -> Tensor:
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        return x + self.fn(x)
 
 
 
