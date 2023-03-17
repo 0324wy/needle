@@ -3,6 +3,8 @@ My homework projects repository for 10-714 [Deep Learning Systems](https://dlsys
 
 Designed and built a deep learning library called **Needle**, comparable to a very minimal version of PyTorch or TensorFlow, capable of efficient GPU-based operations, automatic differentiation of all implemented functions, and the necessary modules to support parameterized layers, loss functions, data loaders, and optimizers.
 
+![](https://github.com/0324wy/needle/blob/main/layersInDLF.png)
+
 ## Homework 0
 
 Build a basic softmax regression algorithm, plus a simple two-layer neural network. Create these implementations both in native Python (using the numpy library), and (for softmax regression) in native C/C++. 
