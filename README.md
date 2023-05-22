@@ -5,7 +5,7 @@ Designed and built a deep learning library called **Needle**, comparable to a ve
 
 ![](https://github.com/0324wy/needle/blob/main/layersInDLF.png)
 
-## Homework 0
+## Project 0
 
 Build a basic softmax regression algorithm, plus a simple two-layer neural network. Create these implementations both in native Python (using the numpy library), and (for softmax regression) in native C/C++. 
 
@@ -21,7 +21,7 @@ Build a basic softmax regression algorithm, plus a simple two-layer neural netwo
 
 &#x2705;Softmax regression in C++
 
-## Homework 1
+## Project 1
 
 Build a basic **automatic differentiation** framework, then use this to re-implement the simple two-layer neural network we used for the MNIST digit classification problem in HW0.
 
@@ -56,7 +56,7 @@ Build a basic **automatic differentiation** framework, then use this to re-imple
 
 &#x2705;SGD for a two-layer neural network
 
-## Homework 2
+## Project 2
 
 Implement a **neural network library** in the needle framework.
 
@@ -92,7 +92,7 @@ Implement a **neural network library** in the needle framework.
 - &#x2705;Epoch: `epoch` function
 - &#x2705;Train Mnist: `train_mnist` function
 
-## Homework3: Building an NDArray library
+## Project 3: Building an NDArray library
 
 
 Build a simple backing library for the processing that underlies most deep learning systems: **the n-dimensional array** (a.k.a. the NDArray). 
