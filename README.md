@@ -1,4 +1,4 @@
-# Deep Learning System Course
+# Needle
 Completed an online course on 10-714 [Deep Learning Systems](https://dlsyscourse.org/) offered by CMU in order to delve into the internals of PyTorch and TensorFlow, and understand how they function at a fundamental level.
 
 Designed and built a deep learning library called **Needle**, comparable to a very minimal version of PyTorch or TensorFlow, capable of efficient GPU-based operations, automatic differentiation of all implemented functions, and the necessary modules to support parameterized layers, loss functions, data loaders, and optimizers.
